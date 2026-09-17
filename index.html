@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لا إله إلا الله</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ==================== شاشة البداية ==================== -->
+    <div id="screen-home" class="screen active">
+        <div class="container">
+            <h1 class="app-title">لا إله إلا الله</h1>
+            <p class="subtitle">تطبيق إسلامي شامل</p>
+            <div class="buttons-container">
+                <button class="main-btn quran-btn" onclick="goToQuranMessage()">
+                    📖 القرآن الكريم
+                </button>
+                <button class="main-btn azkar-btn" onclick="showScreen('screen-azkar-options')">
+                    🤲 الأذكار
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== شاشة اختيار الأذكار ==================== -->
+    <div id="screen-azkar-options" class="screen">
+        <div class="container">
+            <h1 class="app-title">الأذكار</h1>
+            <p class="subtitle">اختر وقت الذكر</p>
+            <div class="azkar-options">
+                <button class="main-btn morning-btn" onclick="showAzkar('morning')">
+                    🌅 أذكار الصباح
+                </button>
+                <button class="main-btn evening-btn" onclick="showAzkar('evening')">
+                    🌙 أذكار المساء
+                </button>
+                <button class="main-btn both-btn" onclick="showAzkar('both')">
+                    🤲 أذكار الصباح والمساء معاً
+                </button>
+                <button class="main-btn back-btn-grey" onclick="showScreen('screen-home')">
+                    ⬅️ رجوع
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== شاشة عرض الأذكار ==================== -->
+    <div id="screen-azkar-display" class="screen">
+        <div class="azkar-header">
+            <button class="back-arrow" onclick="showScreen('screen-azkar-options')">➡️</button>
+            <h2 id="azkarPageTitle">الأذكار</h2>
+        </div>
+        <div id="azkarContent" class="azkar-content"></div>
+    </div>
+
+    <!-- ==================== شاشة رسالة القرآن ==================== -->
+    <div id="screen-quran-message" class="screen">
+        <div class="container">
+            <div class="quran-message">
+                <p class="message-text">
+                    هذا القرآن على روح:<br>
+                    المرحوم / صابر حسن جاد<br>
+                    و المرحومه / زينب محمد الفضالي<br>
+                    فأقرأ لهم الفاتحه بعد اذنك
+                </p>
+                <button class="skip-btn" onclick="goToQuran()">
+                    تخطي ➡️
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== شاشة قارئ القرآن ==================== -->
+    <div id="screen-quran" class="screen">
+        <div class="pdf-toolbar">
+            <button onclick="showScreen('screen-home')">🏠 الرئيسية</button>
+            <div class="pdf-controls">
+                <button onclick="prevPage()">⬅️ السابق</button>
+                <input type="number" id="pageNum" value="1" min="1" onchange="goToPage(this.value)">
+                <span id="pageInfo">/ 1</span>
+                <button onclick="nextPage()">التالي ➡️</button>
+            </div>
+            <div class="pdf-controls">
+                <button onclick="zoomIn()">➕</button>
+                <button onclick="zoomOut()">➖</button>
+            </div>
+        </div>
+        <div id="pdfContainer" class="pdf-container">
+            <div class="loading">⏳ جاري تحميل القرآن الكريم...</div>
+        </div>
+    </div>
+
+    <!-- مكتبة PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <script>
+        // ==================================================
+        // 1. التنقل بين الشاشات
+        // ==================================================
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // ==================================================
+        // 2. بيانات الأذكار
+        // ==================================================
+        const azkar = {
+            shared: [
+                { text: "(يَا حَيُّ يَا قَيُّومُ، بِرَحْمَتِكَ أَسْتَغِيثُ، أَصْلِحْ لِي شَأْنِي كُلَّهُ، وَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ)", count: "مرة واحدة", source: "رواه النسائي" },
+                { text: "(اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي، فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ)", count: "مرة واحدة", source: "رواه البخاري" },
+                { text: "(اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي، اللَّهُمَّ اسْتُرْ عَوْرَاتِي، وَآمِنْ رَوْعَاتِي، اللَّهُمَّ احْفَظْنِي مِنْ بَيْنِ يَدَيَّ وَمِنْ خَلْفِي، وَعَنْ يَمِينِي وَعَنْ شِمَالِي، وَمِنْ فَوْقِي، وَأَعُوذُ بِعَظَمَتِكَ أَنْ أُغْتَالَ مِنْ تَحْتِي)", count: "مرة واحدة", source: "رواه أبو داود" },
+                { text: "(اللَّهُمَّ فَاطِرَ السَّمَاوَاتِ وَالْأَرْضِ، عَالِمَ الْغَيْبِ وَالشَّهَادَةِ، رَبَّ كُلِّ شَيْءٍ وَمَلِيكَهُ، أَشْهَدُ أَنْ لَا إِلَهَ إِلَّا أَنْتَ، أَعُوذُ بِكَ مِنْ شَرِّ نَفْسِي، وَشَرِّ الشَّيْطَانِ وَشِرْكِهِ)", count: "مرة واحدة", source: "رواه الترمذي" },
+                { text: "(بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ)", count: "ثلاث مرات", source: "رواه أبو داود" },
+                { text: "(رَضِيتُ بِاللَّهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ نَبِيًّا)", count: "ثلاث مرات", source: "رواه أبو داود" },
+                { text: "(لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ)", count: "عشر مرات أو مائة مرة", source: "رواه مسلم" },
+                { text: "(سُبْحَانَ اللَّهِ وَبِحَمْدِهِ)", count: "مائة مرة", source: "رواه مسلم" }
+            ],
+            morningOnly: [
+                { text: "(اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ النُّشُورُ)", count: "مرة واحدة", source: "رواه أحمد وأبو داود والترمذي" },
+                { text: "(أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذَا الْيَوْمِ وَخَيْرَ مَا بَعْدَهُ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذَا الْيَوْمِ وَشَرِّ مَا بَعْدَهُ، رَبِّ أَعُوذُ بِكَ مِنَ الْكَسَلِ وَسُوءِ الْكِبَرِ، رَبِّ أَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي الْقَبْرِ)", count: "مرة واحدة", source: "رواه مسلم" },
+                { text: "(أَصْبَحْنَا عَلَى فِطْرَةِ الْإِسْلَامِ، وَعَلَى كَلِمَةِ الْإِخْلَاصِ، وَعَلَى دِينِ نَبِيِّنَا مُحَمَّدٍ ﷺ، وَعَلَى مِلَّةِ أَبِينَا إِبْرَاهِيمَ حَنِيفًا مُسْلِمًا وَمَا كَانَ مِنَ الْمُشْرِكِينَ)", count: "مرة واحدة", source: "رواه أحمد" },
+                { text: "(سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، عَدَدَ خَلْقِهِ، وَرِضَا نَفْسِهِ، وَزِنَةَ عَرْشِهِ، وَمِدَادَ كَلِمَاتِهِ)", count: "ثلاث مرات", source: "رواه مسلم" }
+            ],
+            eveningOnly: [
+                { text: "(اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ)", count: "مرة واحدة", source: "رواه أحمد وأبو داود والترمذي" },
+                { text: "(أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذِهِ اللَّيْلَةِ وَخَيْرَ مَا بَعْدَهَا، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذِهِ اللَّيْلَةِ وَشَرِّ مَا بَعْدَهَا، رَبِّ أَعُوذُ بِكَ مِنَ الْكَسَلِ وَسُوءِ الْكِبَرِ، رَبِّ أَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي الْقَبْرِ)", count: "مرة واحدة", source: "رواه مسلم" },
+                { text: "(أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ)", count: "مرة واحدة", source: "رواه مسلم" }
+            ]
+        };
+
+        // ==================================================
+        // 3. عرض الأذكار
+        // ==================================================
+        function createZikrCard(zikr) {
+            return `
+                <div class="zikr-card">
+                    <p class="zikr-text">${zikr.text}</p>
+                    <span class="zikr-count">🔁 ${zikr.count}</span>
+                    <span class="zikr-source">📚 ${zikr.source}</span>
+                </div>
+            `;
+        }
+
+        function renderAzkar(sections, title) {
+            document.getElementById('azkarPageTitle').textContent = title;
+            let html = '';
+            sections.forEach(section => {
+                if (section.title) html += `<h3 class="section-title">${section.title}</h3>`;
+                section.data.forEach(zikr => { html += createZikrCard(zikr); });
+            });
+            document.getElementById('azkarContent').innerHTML = html;
+            showScreen('screen-azkar-display');
+        }
+
+        function showAzkar(type) {
+            if (type === 'morning') {
+                renderAzkar([
+                    { title: 'الأذكار المشتركة', data: azkar.shared },
+                    { title: 'أذكار الصباح فقط', data: azkar.morningOnly }
+                ], '🌅 أذكار الصباح');
+            } else if (type === 'evening') {
+                renderAzkar([
+                    { title: 'الأذكار المشتركة', data: azkar.shared },
+                    { title: 'أذكار المساء فقط', data: azkar.eveningOnly }
+                ], '🌙 أذكار المساء');
+            } else if (type === 'both') {
+                renderAzkar([
+                    { title: 'الأذكار التي تقال في الصباح والمساء', data: azkar.shared }
+                ], '🤲 الأذكار المشتركة');
+            }
+        }
+
+        // ==================================================
+        // 4. القرآن الكريم (PDF.js)
+        // ==================================================
+        const pdfUrl = 'quran10222.pdf';
+        let pdfDoc = null;
+        let pageNum = 1;
+        let scale = 1.5;
+        let pdfLoaded = false;
+
+        function goToQuranMessage() {
+            showScreen('screen-quran-message');
+        }
+
+        function goToQuran() {
+            showScreen('screen-quran');
+            if (!pdfLoaded) {
+                loadPdf();
+                pdfLoaded = true;
+            }
+        }
+
+        function loadPdf() {
+            const container = document.getElementById('pdfContainer');
+            const pageInfo = document.getElementById('pageInfo');
+            const pageNumInput = document.getElementById('pageNum');
+
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+            pdfjsLib.getDocument(pdfUrl).promise.then(function(pdf) {
+                pdfDoc = pdf;
+                pageInfo.textContent = '/ ' + pdf.numPages;
+                pageNumInput.max = pdf.numPages;
+                container.innerHTML = '';
+                renderPage(pageNum);
+            }).catch(function(error) {
+                container.innerHTML = '<div class="loading">❌ خطأ في تحميل الملف: ' + error.message + '</div>';
+            });
+        }
+
+        function renderPage(num) {
+            pdfDoc.getPage(num).then(function(page) {
+                const viewport = page.getViewport({ scale: scale });
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                page.render({ canvasContext: context, viewport: viewport }).promise.then(function() {
+                    const container = document.getElementById('pdfContainer');
+                    container.innerHTML = '';
+                    container.appendChild(canvas);
+                });
+            });
+            document.getElementById('pageNum').value = num;
+        }
+
+        function prevPage() {
+            if (pdfDoc && pageNum > 1) {
+                pageNum--;
+                renderPage(pageNum);
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function nextPage() {
+            if (pdfDoc && pageNum < pdfDoc.numPages) {
+                pageNum++;
+                renderPage(pageNum);
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function goToPage(num) {
+            num = parseInt(num);
+            if (pdfDoc && num >= 1 && num <= pdfDoc.numPages) {
+                pageNum = num;
+                renderPage(pageNum);
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function zoomIn() {
+            if (pdfDoc) { scale += 0.25; renderPage(pageNum); }
+        }
+
+        function zoomOut() {
+            if (pdfDoc && scale > 0.5) { scale -= 0.25; renderPage(pageNum); }
+        }
+    </script>
+</body>
+</html>

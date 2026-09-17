@@ -1,0 +1,338 @@
+/* ==================== الإعدادات العامة ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Tajawal', 'Cairo', 'Arial', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    min-height: 100vh;
+}
+
+body {
+    background: linear-gradient(135deg, #e8f5e9 0%, #fff8e1 100%);
+    color: #222;
+}
+
+/* ==================== نظام الشاشات ==================== */
+.screen {
+    display: none;
+    min-height: 100vh;
+    padding: 20px;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    animation: fadeIn 0.3s ease;
+}
+
+.screen.active {
+    display: flex;
+}
+
+#screen-azkar-display.active,
+#screen-quran.active {
+    display: block;
+    padding: 0;
+    align-items: stretch;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== الحاويات ==================== */
+.container {
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* ==================== العناوين ==================== */
+.app-title {
+    font-size: 48px;
+    font-weight: 900;
+    color: #2E7D32;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.subtitle {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 50px;
+}
+
+/* ==================== الأزرار ==================== */
+.buttons-container,
+.azkar-options {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.main-btn {
+    display: block;
+    width: 100%;
+    padding: 22px;
+    font-size: 22px;
+    font-weight: 700;
+    border: none;
+    border-radius: 15px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    font-family: inherit;
+}
+
+.main-btn:hover,
+.main-btn:active {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+}
+
+.quran-btn   { background: linear-gradient(135deg, #388E3C, #2E7D32); }
+.azkar-btn   { background: linear-gradient(135deg, #1976D2, #0D47A1); }
+.morning-btn { background: linear-gradient(135deg, #FF9800, #F57C00); }
+.evening-btn { background: linear-gradient(135deg, #3F51B5, #1A237E); }
+.both-btn    { background: linear-gradient(135deg, #009688, #004D40); }
+.back-btn-grey { background: linear-gradient(135deg, #9E9E9E, #616161); }
+
+/* ==================== شاشة عرض الأذكار ==================== */
+.azkar-header {
+    background: linear-gradient(135deg, #2E7D32, #1B5E20);
+    color: white;
+    padding: 18px 60px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.azkar-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.back-arrow {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    font-size: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.3s;
+}
+
+.back-arrow:hover {
+    background: rgba(255,255,255,0.35);
+}
+
+.azkar-content {
+    padding: 15px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.zikr-card {
+    background: white;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 15px;
+    border-right: 5px solid #2E7D32;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    transition: transform 0.2s;
+}
+
+.zikr-card:hover {
+    transform: translateX(-3px);
+}
+
+.zikr-text {
+    font-size: 19px;
+    line-height: 2;
+    color: #222;
+    margin-bottom: 12px;
+    text-align: justify;
+    font-weight: 500;
+}
+
+.zikr-count {
+    display: inline-block;
+    background: #E8F5E9;
+    color: #2E7D32;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    margin-left: 8px;
+}
+
+.zikr-source {
+    display: inline-block;
+    color: #777;
+    font-size: 13px;
+    margin-top: 8px;
+    font-style: italic;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1A237E;
+    margin: 25px 0 15px;
+    padding: 12px;
+    background: #E3F2FD;
+    border-radius: 12px;
+    border-right: 5px solid #1976D2;
+}
+
+/* ==================== شاشة رسالة القرآن ==================== */
+.quran-message {
+    background: #FFF8E1;
+    padding: 35px 25px;
+    border-radius: 20px;
+    border: 3px solid #FFC107;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.message-text {
+    font-size: 22px;
+    line-height: 2.2;
+    color: #333;
+    margin-bottom: 30px;
+    font-weight: 500;
+}
+
+.skip-btn {
+    background: linear-gradient(135deg, #FF9800, #F57C00);
+    color: white;
+    border: none;
+    padding: 15px 60px;
+    font-size: 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 700;
+    font-family: inherit;
+    box-shadow: 0 4px 15px rgba(255,152,0,0.4);
+}
+
+.skip-btn:hover,
+.skip-btn:active {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(255,152,0,0.6);
+}
+
+/* ==================== شاشة قارئ القرآن ==================== */
+#screen-quran {
+    background: #333;
+}
+
+.pdf-toolbar {
+    background: linear-gradient(135deg, #2E7D32, #1B5E20);
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.pdf-toolbar button {
+    color: white;
+    font-size: 14px;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 700;
+    transition: background 0.2s;
+}
+
+.pdf-toolbar button:hover {
+    background: rgba(255,255,255,0.35);
+}
+
+.pdf-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pdf-controls input {
+    width: 65px;
+    padding: 7px;
+    border-radius: 6px;
+    border: none;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+}
+
+#pageInfo {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.pdf-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 20px;
+    min-height: 80vh;
+}
+
+.pdf-container canvas {
+    max-width: 100%;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    border-radius: 8px;
+    background: white;
+}
+
+.loading {
+    color: white;
+    font-size: 20px;
+    padding: 50px;
+    text-align: center;
+}
+
+/* ==================== استجابة الموبايل ==================== */
+@media (max-width: 600px) {
+    .app-title { font-size: 36px; }
+    .subtitle { font-size: 16px; margin-bottom: 35px; }
+    .main-btn { font-size: 18px; padding: 18px; }
+    .zikr-text { font-size: 17px; }
+    .message-text { font-size: 19px; }
+    .pdf-toolbar { justify-content: center; }
+    .pdf-toolbar button { font-size: 12px; padding: 7px 10px; }
+    .pdf-controls input { width: 55px; }
+}
+
