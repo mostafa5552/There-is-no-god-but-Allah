@@ -335,4 +335,190 @@ body {
     .pdf-toolbar button { font-size: 12px; padding: 7px 10px; }
     .pdf-controls input { width: 55px; }
 }
+/* ==================== قارئ القرآن - Scroll ==================== */
+#screen-quran {
+    background: #2c2c2c;
+    min-height: 100vh;
+}
+
+.pdf-scroll-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 10px;
+    gap: 20px;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.pdf-page {
+    width: 100%;
+    max-width: 900px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.2s;
+}
+
+.pdf-page canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* مؤشر التحميل لكل صفحة */
+.pdf-page::before {
+    content: '⏳';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 30px;
+    opacity: 0.3;
+    animation: pulse 1.5s infinite;
+}
+
+.pdf-page.loaded::before {
+    display: none;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+}
+
+/* تحسين عرض الأزرار على الموبايل */
+@media (max-width: 600px) {
+    .pdf-toolbar {
+        padding: 8px;
+        gap: 5px;
+    }
+    .pdf-toolbar button {
+        font-size: 11px;
+        padding: 6px 8px;
+    }
+    .pdf-controls {
+        gap: 4px;
+    }
+    .pdf-controls input {
+        width: 50px;
+        padding: 5px;
+        font-size: 12px;
+    }
+    #pageInfo {
+        font-size: 12px;
+    }
+    .pdf-scroll-container {
+        padding: 10px 5px;
+        gap: 10px;
+    }
+}
+/* ==================== تذييل بطاقة الذكر والعدّاد ==================== */
+.zikr-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 12px;
+    border-top: 1px dashed #ddd;
+}
+
+.zikr-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.zikr-count-display {
+    background: #E8F5E9;
+    color: #2E7D32;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.counter-btn {
+    background: linear-gradient(135deg, #2E7D32, #1B5E20);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 10px 20px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 90px;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    box-shadow: 0 3px 10px rgba(46,125,50,0.3);
+}
+
+.counter-btn:hover {
+    transform: scale(1.05);
+}
+
+.counter-btn:active {
+    transform: scale(0.95);
+}
+
+.counter-num {
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.counter-label {
+    font-size: 11px;
+    margin-top: 3px;
+    opacity: 0.9;
+}
+
+.counter-btn.pulse {
+    animation: counterPulse 0.2s ease;
+}
+
+@keyframes counterPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); background: #43A047; }
+    100% { transform: scale(1); }
+}
+
+.counter-btn.completed {
+    background: linear-gradient(135deg, #4CAF50, #2E7D32);
+    cursor: default;
+    opacity: 0.85;
+}
+
+.counter-btn.completed .counter-num {
+    font-size: 26px;
+    color: #FFEB3B;
+}
+
+.counter-btn.completed:hover {
+    transform: none;
+}
+
+/* استجابة الموبايل */
+@media (max-width: 600px) {
+    .zikr-footer {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    .counter-btn {
+        min-width: 75px;
+        padding: 8px 15px;
+    }
+    .counter-num {
+        font-size: 18px;
+    }
+    .counter-label {
+        font-size: 10px;
+    }
+}
 
