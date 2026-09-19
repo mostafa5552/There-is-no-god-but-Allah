@@ -177,7 +177,7 @@
         ];
 
         // ==================================================
-        // 3. مواقيت الصلاة (باستخدام PrayTimes.js)
+        // 3. مواقيت الصلاة
         // ==================================================
         const PRAYERS_ARABIC = {
             fajr: 'الفجر',
@@ -187,6 +187,10 @@
             isha: 'العشاء'
         };
 
+        const LATITUDE = 31.2001;
+        const LONGITUDE = 29.9187;
+        const TIMEZONE = 2;
+
         let prayerTimes = {};
         let prayerEnabled = JSON.parse(localStorage.getItem('prayerEnabled')) || {
             fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true
@@ -195,34 +199,113 @@
         let adhanPlayed = new Set();
         let prayerCheckInterval = null;
 
-        // ✅ إصلاح: استخدام الكائن الجاهز prayTimes
-        function calculatePrayerTimes(date) {
-            try {
-                if (typeof prayTimes === 'undefined') {
-                    console.error('❌ prayTimes غير معرّف');
-                    return null;
-                }
-
-                // تغيير طريقة الحساب إلى الهيئة المصرية
-                prayTimes.setMethod('Egypt');
-
-                const latitude = 31.2001;
-                const longitude = 29.9187;
-                const timezone = 2;
-
-                const times = prayTimes.getTimes(date, [latitude, longitude], timezone, 0, '24h');
-
-                return {
-                    fajr: times.fajr,
-                    dhuhr: times.dhuhr,
-                    asr: times.asr,
-                    maghrib: times.maghrib,
-                    isha: times.isha
-                };
-            } catch (error) {
-                console.error('❌ خطأ في حساب المواقيت:', error);
-                return null;
+        // ==================================================
+        // 🔍 دالة تشخيص: تفحص الوضع الحالي
+        // ==================================================
+        function diagnosePrayTimes() {
+            let info = [];
+            info.push('typeof PrayTimes = ' + typeof PrayTimes);
+            info.push('typeof prayTimes = ' + typeof prayTimes);
+            if (typeof prayTimes !== 'undefined') {
+                info.push('prayTimes.setMethod = ' + typeof prayTimes.setMethod);
+                info.push('prayTimes.getTimes = ' + typeof prayTimes.getTimes);
             }
+            if (typeof PrayTimes === 'function') {
+                info.push('PrayTimes.prototype.getTimes = ' + typeof PrayTimes.prototype.getTimes);
+            }
+            return info.join(' | ');
+        }
+
+        // ==================================================
+        // 🎯 محاولة حساب المواقيت بـ 4 طرق
+        // ==================================================
+        function calculatePrayerTimes(date) {
+            const errors = [];
+
+            // ========== الطريقة 1: استخدام prayTimes الجاهز (setMethod) ==========
+            try {
+                if (typeof prayTimes !== 'undefined' && typeof prayTimes.getTimes === 'function') {
+                    prayTimes.setMethod('Egypt');
+                    const times = prayTimes.getTimes(date, [LATITUDE, LONGITUDE], TIMEZONE, 0, '24h');
+                    if (times && times.fajr && times.fajr !== '-----') {
+                        console.log('✅ نجحت الطريقة 1: prayTimes.setMethod');
+                        return {
+                            fajr: times.fajr, dhuhr: times.dhuhr, asr: times.asr,
+                            maghrib: times.maghrib, isha: times.isha
+                        };
+                    }
+                }
+            } catch (e) {
+                errors.push('طريقة 1: ' + e.message);
+            }
+
+            // ========== الطريقة 2: إنشاء كائن جديد بـ new PrayTimes ==========
+            try {
+                if (typeof PrayTimes === 'function') {
+                    const PT = new PrayTimes('Egypt');
+                    const times = PT.getTimes(date, [LATITUDE, LONGITUDE], TIMEZONE, 0, '24h');
+                    if (times && times.fajr && times.fajr !== '-----') {
+                        console.log('✅ نجحت الطريقة 2: new PrayTimes');
+                        return {
+                            fajr: times.fajr, dhuhr: times.dhuhr, asr: times.asr,
+                            maghrib: times.maghrib, isha: times.isha
+                        };
+                    }
+                }
+            } catch (e) {
+                errors.push('طريقة 2: ' + e.message);
+            }
+
+            // ========== الطريقة 3: بدون وسيط ==========
+            try {
+                if (typeof PrayTimes === 'function') {
+                    const PT = new PrayTimes();
+                    PT.setMethod('Egypt');
+                    const times = PT.getTimes(date, [LATITUDE, LONGITUDE], TIMEZONE, 0, '24h');
+                    if (times && times.fajr && times.fajr !== '-----') {
+                        console.log('✅ نجحت الطريقة 3: new PrayTimes() + setMethod');
+                        return {
+                            fajr: times.fajr, dhuhr: times.dhuhr, asr: times.asr,
+                            maghrib: times.maghrib, isha: times.isha
+                        };
+                    }
+                }
+            } catch (e) {
+                errors.push('طريقة 3: ' + e.message);
+            }
+
+            // ========== الطريقة 4: استخدام prayTimes كدالة ==========
+            try {
+                if (typeof prayTimes === 'function') {
+                    const PT = prayTimes('Egypt');
+                    const times = PT.getTimes(date, [LATITUDE, LONGITUDE], TIMEZONE, 0, '24h');
+                    if (times && times.fajr && times.fajr !== '-----') {
+                        console.log('✅ نجحت الطريقة 4: prayTimes() كدالة');
+                        return {
+                            fajr: times.fajr, dhuhr: times.dhuhr, asr: times.asr,
+                            maghrib: times.maghrib, isha: times.isha
+                        };
+                    }
+                }
+            } catch (e) {
+                errors.push('طريقة 4: ' + e.message);
+            }
+
+            // ========== فشلت كل الطرق ==========
+            const diagnosis = diagnosePrayTimes();
+            const errorMsg = '❌ فشلت كل الطرق\n\n' + 
+                            '📋 التشخيص:\n' + diagnosis + '\n\n' + 
+                            '📋 الأخطاء:\n' + errors.join('\n');
+
+            // عرض التشخيص على الشاشة
+            const container = document.getElementById('prayerTimesHome');
+            if (container) {
+                container.innerHTML = '<div style="color:#d32f2f;font-size:11px;padding:10px;text-align:right;word-break:break-all;background:#ffebee;border-radius:8px;">' + 
+                    errorMsg.replace(/\n/g, '<br>') + '</div>';
+            }
+
+            console.error(errorMsg);
+            return null;
         }
 
         function updateDailyPrayerTimes() {
@@ -238,12 +321,6 @@
                     console.log('✅ تم تحديث المواقيت:', prayerTimes);
                     renderPrayerTimes();
                     schedulePrayerCheck();
-                } else {
-                    // عرض رسالة خطأ
-                    const container = document.getElementById('prayerTimesHome');
-                    if (container) {
-                        container.innerHTML = '<div class="loading-small">⚠️ تعذر حساب المواقيت</div>';
-                    }
                 }
             }
         }
@@ -253,8 +330,7 @@
             if (!container) return;
 
             if (Object.keys(prayerTimes).length === 0) {
-                container.innerHTML = '<div class="loading-small">⏳ جاري الحساب...</div>';
-                return;
+                return; // التشخيص ظاهر بالفعل
             }
 
             const now = new Date();
@@ -351,7 +427,6 @@
 
         // تشغيل عند بدء التطبيق
         window.addEventListener('load', () => {
-            // انتظر قليلاً حتى تحمّل المكتبة
             setTimeout(() => {
                 updateDailyPrayerTimes();
                 setInterval(updateDailyPrayerTimes, 60000);
@@ -729,4 +804,4 @@
         }
     </script>
 </body>
-                                    </html>
+    </html>
