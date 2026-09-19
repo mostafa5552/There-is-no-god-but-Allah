@@ -177,7 +177,7 @@
         ];
 
         // ==================================================
-        // 3. مواقيت الصلاة
+        // 3. مواقيت الصلاة (باستخدام PrayTimes.js)
         // ==================================================
         const PRAYERS_ARABIC = {
             fajr: 'الفجر',
@@ -195,13 +195,23 @@
         let adhanPlayed = new Set();
         let prayerCheckInterval = null;
 
+        // ✅ إصلاح: استخدام الكائن الجاهز prayTimes
         function calculatePrayerTimes(date) {
             try {
-                const prayTimes = new PrayTimes('Egypt');
+                if (typeof prayTimes === 'undefined') {
+                    console.error('❌ prayTimes غير معرّف');
+                    return null;
+                }
+
+                // تغيير طريقة الحساب إلى الهيئة المصرية
+                prayTimes.setMethod('Egypt');
+
                 const latitude = 31.2001;
                 const longitude = 29.9187;
                 const timezone = 2;
+
                 const times = prayTimes.getTimes(date, [latitude, longitude], timezone, 0, '24h');
+
                 return {
                     fajr: times.fajr,
                     dhuhr: times.dhuhr,
@@ -210,7 +220,7 @@
                     isha: times.isha
                 };
             } catch (error) {
-                console.error('خطأ في حساب المواقيت:', error);
+                console.error('❌ خطأ في حساب المواقيت:', error);
                 return null;
             }
         }
@@ -218,14 +228,22 @@
         function updateDailyPrayerTimes() {
             const today = new Date();
             const todayStr = today.toDateString();
+
             if (lastCalculatedDate !== todayStr) {
                 const newTimes = calculatePrayerTimes(today);
                 if (newTimes) {
                     prayerTimes = newTimes;
                     lastCalculatedDate = todayStr;
                     adhanPlayed.clear();
+                    console.log('✅ تم تحديث المواقيت:', prayerTimes);
                     renderPrayerTimes();
                     schedulePrayerCheck();
+                } else {
+                    // عرض رسالة خطأ
+                    const container = document.getElementById('prayerTimesHome');
+                    if (container) {
+                        container.innerHTML = '<div class="loading-small">⚠️ تعذر حساب المواقيت</div>';
+                    }
                 }
             }
         }
@@ -233,6 +251,11 @@
         function renderPrayerTimes() {
             const container = document.getElementById('prayerTimesHome');
             if (!container) return;
+
+            if (Object.keys(prayerTimes).length === 0) {
+                container.innerHTML = '<div class="loading-small">⏳ جاري الحساب...</div>';
+                return;
+            }
 
             const now = new Date();
             const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -244,9 +267,11 @@
                 const hour12 = hours % 12 || 12;
                 const ampm = hours >= 12 ? 'م' : 'ص';
                 const formattedTime = `${hour12}:${String(minutes).padStart(2, '0')} ${ampm}`;
+
                 const prayerMinutes = hours * 60 + minutes;
                 const isNext = !nextPrayerFound && prayerMinutes > currentMinutes;
                 if (isNext) nextPrayerFound = true;
+
                 const isEnabled = prayerEnabled[key];
 
                 html += `
@@ -324,14 +349,18 @@
             }
         }
 
+        // تشغيل عند بدء التطبيق
         window.addEventListener('load', () => {
-            updateDailyPrayerTimes();
-            setInterval(updateDailyPrayerTimes, 60000);
-            setInterval(() => {
-                if (document.getElementById('screen-home').classList.contains('active')) {
-                    renderPrayerTimes();
-                }
-            }, 60000);
+            // انتظر قليلاً حتى تحمّل المكتبة
+            setTimeout(() => {
+                updateDailyPrayerTimes();
+                setInterval(updateDailyPrayerTimes, 60000);
+                setInterval(() => {
+                    if (document.getElementById('screen-home').classList.contains('active')) {
+                        renderPrayerTimes();
+                    }
+                }, 60000);
+            }, 100);
         });
 
         // ==================================================
@@ -561,7 +590,6 @@
             const pageInfo = document.getElementById('pageInfo');
             const pageNumInput = document.getElementById('pageNum');
 
-            // تحميل PDF مع الإعدادات الجديدة للإصدار 6.x
             const loadingTask = pdfjsLib.getDocument({
                 url: pdfUrl,
                 cMapUrl: 'libs/web/cmaps/',
@@ -695,12 +723,10 @@
             pagesToRedraw.forEach(num => renderPdfPage(num));
         }
 
-        // ==================================================
-        // 7. تسجيل Service Worker
-        // ==================================================
+        // تسجيل Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(() => {});
         }
     </script>
 </body>
-</html>
+                                    </html>
